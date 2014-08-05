@@ -134,6 +134,7 @@
   override visitFileFailed. Attributes will be ignored. Each function
   must return a FileVisitResult or nil. If nil,
   FileVisitResult/CONTINUE will be used."
+  ^java.nio.file.FileVisitor
   [& {:keys [pre-visit-directory post-visit-directory visit-file]
       :or {pre-visit-directory (constantly nil)
            post-visit-directory (constantly nil)
@@ -153,3 +154,11 @@
                   (raise-or-continue post-visit-directory)
                   :visit-file
                   (drop-and-continue visit-file))))
+
+(defn walk-file-tree
+  "Walks the file tree rooted at start with visitor. Start must be
+  able to be coerced to a path. Returns the starting path."
+  ^java.nio.file.Path
+  [start visitor & {:keys [file-visit-options max-depth]
+                    :or {file-visit-options #{} max-depth Integer/MAX_VALUE}}]
+  (Files/walkFileTree (path start) file-visit-options max-depth visitor))
