@@ -1,8 +1,8 @@
 (ns walkthrough
-  (:require [org.tobereplaced.nio.file :refer [delete! naive-visitor path]])
-  (:import [java.nio.file Files]))
+  (:require [org.tobereplaced.nio.file :refer [delete! naive-visitor
+                                               walk-file-tree]]))
 
 ;; Delete an entire directory tree without following symlinks.
-(Files/walkFileTree (path "out")
-                    (naive-visitor :post-visit-directory delete!
-                                   :visit-file delete!))
+(walk-file-tree "out"
+                (naive-visitor :post-visit-directory delete!
+                               :visit-file delete!))
