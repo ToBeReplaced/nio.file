@@ -1,5 +1,5 @@
 (ns org.tobereplaced.nio.file
-  (:require [org.tobereplace.nio.file.protocols :as p])
+  (:require [org.tobereplaced.nio.file.protocols :as p])
   (:import (java.nio.file FileVisitResult FileVisitor Files LinkOption
                           Path)))
 

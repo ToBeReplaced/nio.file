@@ -1,4 +1,4 @@
-(ns org.tobereplace.nio.file.protocols
+(ns org.tobereplaced.nio.file.protocols
   (:import (java.io File InputStream OutputStream)
            (java.net URI)
            (java.nio.file CopyOption FileSystem Files Path Paths)))
