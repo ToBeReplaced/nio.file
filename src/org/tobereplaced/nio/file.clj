@@ -110,10 +110,8 @@
   "Returns a reified FileVisitor that acts as a SimpleFileVisitor with
   methods overridden by the functions passed in."
   ^java.nio.file.FileVisitor
-  [& {:keys [pre-visit-directory
-             post-visit-directory
-             visit-file
-             visit-file-failed]
+  [& {:keys [pre-visit-directory post-visit-directory
+             visit-file visit-file-failed]
       :or {pre-visit-directory (constantly FileVisitResult/CONTINUE)
            post-visit-directory (fn [_ exc]
                                   (if exc
@@ -131,19 +129,15 @@
   "Returns a reified FileVisitor that acts as a SimpleFileVisitor with
   functions called with only the first argument of its corresponding
   method. pre-visit-directory and post-visit-directory will be called
-  with only the directory. visit-file and visit-file-failed will be
-  called with only the file. Exceptions will be thrown if they
-  exist. Attributes will be ignored. Each function must return a
-  FileVisitResult or nil. If nil, FileVisitResult/CONTINUE will be
-  used."
-  [& {:keys [pre-visit-directory
-             post-visit-directory
-             visit-file
-             visit-file-failed]
+  with only the directory. visit-file will be called with only the
+  file. Exceptions will be thrown if they exist, so you may not
+  override visitFileFailed. Attributes will be ignored. Each function
+  must return a FileVisitResult or nil. If nil,
+  FileVisitResult/CONTINUE will be used."
+  [& {:keys [pre-visit-directory post-visit-directory visit-file]
       :or {pre-visit-directory (constantly nil)
            post-visit-directory (constantly nil)
-           visit-file (constantly nil)
-           visit-file-failed (constantly nil)}}]
+           visit-file (constantly nil)}}]
   (let [continue (fn [f] #(if-some [res (f %)] res FileVisitResult/CONTINUE))
         drop-and-continue (fn [f]
                             (let [g (continue f)]
@@ -158,6 +152,4 @@
                   :post-visit-directory
                   (raise-or-continue post-visit-directory)
                   :visit-file
-                  (drop-and-continue visit-file)
-                  :visit-file-failed
-                  (raise-or-continue visit-file-failed))))
+                  (drop-and-continue visit-file))))
