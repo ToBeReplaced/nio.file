@@ -1,6 +1,6 @@
 (defproject org.tobereplaced/nio.file "0.1.0-SNAPSHOT"
   :description "Wrapper for java.nio.file"
-  :url "http://example.com/FIXME"
+  :url "https://github.com/ToBeReplaced/nio.file"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :global-vars {*warn-on-reflection* true}
