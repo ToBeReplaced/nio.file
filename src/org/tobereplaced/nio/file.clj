@@ -161,5 +161,3 @@
                   (drop-and-continue visit-file)
                   :visit-file-failed
                   (raise-or-continue visit-file-failed))))
-
-#_
