@@ -20,50 +20,39 @@
   ([this] (p/unary-path this))
   ([this & strings] (p/nary-path this strings)))
 
-(defn compare-to
-  "Returns an int comparing path to the other lexicographically. Other
-  must be able to be coerced to a path."
-  {:arglists '([path other])}
-  [^Path p other]
-  (.compareTo p (path other)))
+(defmacro ^:private defbinarypathfn
+  "Defines a function of two paths from a Path method."
+  [name docstring tag method]
+  `(defn ~name
+     ~docstring
+     {:arglists '(~'[path other])
+      :tag ~tag}
+     [p# other#]
+     (~method (path p#) (path other#))))
 
-(defn starts-with?
-  "Returns true if the path starts with the other, false
-  otherwise. Other must be able to be coerced to a path."
-  {:arglists '([path other])}
-  [^Path p other]
-  (.startsWith p (path other)))
+(defbinarypathfn compare-to
+  "Returns an integer comparing path to the other lexicographically."
+  Integer .compareTo)
 
-(defn ends-with?
-  "Returns true if the path ends with the other, false
-  otherwise. Other must be able to be coerced to a path."
-  {:arglists '([path other])}
-  [^Path p other]
-  (.endsWith p (path other)))
+(defbinarypathfn starts-with?
+  "Returns true if the path starts with the other, false otherwise."
+  Boolean .startsWith)
 
-(defn relativize
-  "Returns a relative path between the path and other. Other must be
-  able to be coerced to a path."
-  {:arglists '([path other])
-   :tag java.nio.file.Path}
-  [^Path p other]
-  (.relativize p (path other)))
+(defbinarypathfn ends-with?
+  "Returns true if the path ends with the other, false otherwise."
+  Boolean .endsWith)
 
-(defn resolve-path
-  "Resolves the others against the path in order. The others must be
-  able to be coerced to paths."
-  {:arglists '([path & others])
-   :tag java.nio.file.Path}
-  [^Path p & others]
-  (reduce #(.resolve ^Path %1 (path %2)) p others))
+(defbinarypathfn relativize
+  "Returns a relative path between the path and other."
+   java.nio.file.Path .relativize)
 
-(defn resolve-sibling
-  "Resolves the other against the path's parent. Other must be able to
-  be coerced to a path."
-  {:arglists '([path other])
-   :tag java.nio.file.Path}
-  [^Path p other]
-  (.resolveSibling p (path other)))
+(defbinarypathfn resolve-path
+  "Resolves the other against the path."
+   java.nio.file.Path .resolve)
+
+(defbinarypathfn resolve-sibling
+  "Resolves the other against the path's parent."
+   java.nio.file.Path .resolveSibling)
 
 (defn- link-options
   "Returns an array of the LinkOptions."
