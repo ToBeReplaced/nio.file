@@ -161,8 +161,7 @@
   they will be coerced to paths. Copy options may be included for
   configuration when writing to a file.
 
-  This function is extensible through the Copy, CopyFromInputStream,
-  and CopyFromPath protocols."
+  This function is extensible through the Copy protocol."
   {:arglists (list '[source out]
                    '[in target & copy-options]
                    '[source target & copy-options])}
@@ -286,7 +285,17 @@
   "Returns the size of the file in bytes."
   Long Files/size)
 
-;; TODO: Implement write
+(defn write
+  "Write bytes or lines of text to a file. Open options may be
+  included for configuration when opening or creating a file. In the
+  case of writing lines of text, the charset will default to UTF-8
+  when not provided, as per the updates in Java 1.8."
+  {:arglists (list '[path bytes & open-options]
+                   '[path lines & open-options]
+                   '[path lines charset & open-options])}
+  [p items & more]
+  (p/write items (path p) more))
+
 ;; TODO: Conditionally implement 1.8 features
 
 (defn file-visitor
