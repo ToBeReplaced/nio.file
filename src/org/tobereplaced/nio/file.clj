@@ -146,11 +146,53 @@
   [source target & copy-options]
   (p/copy source target copy-options))
 
+;; TODO: Implement createDirectories
+;; TODO: Implement createDirectory
+;; TODO: Implement createFile
+;; TODO: Implement createLink
+;; TODO: Implement createSymbolicLink
+;; TODO: Implement createTempDirectory
+;; TODO: Implement createTempFile
+
 (defn delete!
   "Deletes the file at path."
   ^{:arglists '([path])}
   [p]
   (Files/delete (path p)))
+
+;; TODO: Implement deleteIfExists
+;; TODO: Implement exists
+;; TODO: Implement getAttribute
+;; TODO: What to do about getFileAttributeView?
+;; TODO: Implement getFileStore
+;; TODO: Implement getLastModifiedTime
+;; TODO: Implement getOwner
+;; TODO: Implement getPosixFilePermissions
+;; TODO: Implement isDirectory
+;; TODO: Implement isExecutable
+;; TODO: Implement isHidden
+;; TODO: Implement isReadable
+;; TODO: Implement isRegularFile
+;; TODO: Implement isSameFile
+;; TODO: Implement isSymbolicLink
+;; TODO: Implement isWritable
+;; TODO: Implement move
+;; TODO: What to do about newBufferedReader/Writer?
+;; TODO: What to do about newByteChannel/DirectoryStream?
+;; TODO: What to do about newInputStream/OutputStream?
+;; TODO: Implement notExists
+;; TODO: Implement probeContentType
+;; TODO: Implement readAllBytes
+;; TODO: Implement readAllLines
+;; TODO: Implement readAttributes
+;; TODO: Implement readSymbolicLink
+;; TODO: Implement setAttribute
+;; TODO: Implement setLastModifiedTime
+;; TODO: Implement setOwner
+;; TODO: Implement setPosixFilePermissions
+;; TODO: Implement size
+;; TODO: Implement write
+;; TODO: Conditionally implement 1.8 features
 
 (defn file-visitor
   "Returns a reified FileVisitor that acts as a SimpleFileVisitor with
