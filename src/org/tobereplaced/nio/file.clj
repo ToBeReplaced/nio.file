@@ -40,7 +40,7 @@
   (.toRealPath (path p) (into-array LinkOption options)))
 
 ;;;
-;;; Path functions, ordered alphabetically according to their
+;;; Path functions, ordered lexicographically according to their
 ;;; corresponding methods.
 ;;;
 ;;; Do not need to implement .equals, .toURI, or .toString because of
@@ -125,7 +125,8 @@
   Boolean .startsWith)
 
 ;;;
-;;; File methods
+;;; File functions, ordered lexicographically according to their
+;;; corresponding static methods on the Files class.
 ;;;
 
 (defn copy
