@@ -1,4 +1,6 @@
 (ns org.tobereplaced.nio.file
+  "Wrapper for java.nio.file. All functions that accept a Path will be
+  coerced to a Path if possible."
   (:require [org.tobereplaced.nio.file.protocols :as p])
   (:import (java.nio.file FileVisitResult FileVisitor Files LinkOption
                           Path)))
@@ -90,10 +92,10 @@
   (p/copy source target copy-options))
 
 (defn delete!
-  "Deletes the file at the location. The location must be able to be
-  coerced to a path."
-  [location]
-  (Files/delete (path location)))
+  "Deletes the file at path."
+  ^{:arglists '([path])}
+  [p]
+  (Files/delete (path p)))
 
 (defn file-visitor
   "Returns a reified FileVisitor that acts as a SimpleFileVisitor with
@@ -145,8 +147,8 @@
                   (drop-and-continue visit-file))))
 
 (defn walk-file-tree
-  "Walks the file tree rooted at start with visitor. Start must be
-  able to be coerced to a path. Returns the starting path."
+  "Walks the file tree rooted at start with visitor. Returns the
+  starting path."
   ^java.nio.file.Path
   [start visitor & {:keys [file-visit-options max-depth]
                     :or {file-visit-options #{} max-depth Integer/MAX_VALUE}}]
