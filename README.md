@@ -4,6 +4,8 @@ Clojure wrapper for java.nio.file
 
 Work in progress. No release scheduled.
 
+Pull requests welcome! Check out the TODO items in the source code.
+
 # Why Wrap java.nio.file? #
 
 The classes and interfaces in java.nio.file form an *excellent* file
