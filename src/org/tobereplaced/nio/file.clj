@@ -6,7 +6,7 @@
                           Path)))
 
 ;;;
-;;; Path creation and manipulation
+;;; Path creation and coercion.
 ;;;
 
 (defn path
@@ -22,6 +22,52 @@
   ([this] (p/unary-path this))
   ([this & strings] (p/nary-path this strings)))
 
+(defn absolute-path
+  "Returns an absolute path from a Path, URI, File, FileSystem and
+  sequence of strings, or sequence of strings. See path for more
+  details."
+  {:arglists '([path] [uri] [file] [filesystem & strings] [string & strings])
+   :tag java.nio.file.Path}
+  [& args]
+  (.toAbsolutePath ^java.nio.file.Path (apply path args)))
+
+(defn real-path
+  "Returns the real path of an existing file according to the
+  link-options."
+  {:arglists '([path link-options])
+   :tag java.nio.file.Path}
+  [p & options]
+  (.toRealPath (path p) (into-array LinkOption options)))
+
+;;;
+;;; Path functions, ordered alphabetically according to their
+;;; corresponding methods.
+;;;
+;;; Do not need to implement .equals, .toURI, or .toString because of
+;;; other clojure facilities.
+;;;
+;;; Should not implement .getFileSystem because it doesn't make sense
+;;; with coercion.
+;;;
+;;; Do not need to implement .getName, .getNameCount, or .iterator
+;;; because you can just iterate over the path as a sequence.
+;;;
+;;; Do not need to implement subpath because you can reduce with
+;;; resolve over the path.
+;;;
+;;; We already implemented .toAbsolutePath and .toRealPath above.
+;;;
+
+(defmacro ^:private defunarypathfn
+  "Defines a function of a single path from a Path method."
+  [name docstring tag method]
+  `(defn ~name
+     ~docstring
+     {:arglists '(~'[path])
+      :tag ~tag}
+     [p#]
+     (~method (path p#))))
+
 (defmacro ^:private defbinarypathfn
   "Defines a function of two paths from a Path method."
   [name docstring tag method]
@@ -36,39 +82,47 @@
   "Returns an integer comparing path to the other lexicographically."
   Integer .compareTo)
 
-(defbinarypathfn starts-with?
-  "Returns true if the path starts with the other, false otherwise."
-  Boolean .startsWith)
-
 (defbinarypathfn ends-with?
   "Returns true if the path ends with the other, false otherwise."
   Boolean .endsWith)
 
+(defunarypathfn file-name
+  "Returns the name of the file or directory denoted by the path."
+  java.nio.file.Path .getFileName)
+
+(defunarypathfn parent
+  "Returns the parent of the path if it has one, nil otherwise."
+  java.nio.file.Path .getParent)
+
+(defunarypathfn root
+  "Returns the root of the path if it has one, nil otherwise."
+  java.nio.file.Path .getRoot)
+
+(defunarypathfn absolute?
+  "Returns if the path is absolute, false otherwise"
+  Boolean .isAbsolute)
+
+(defunarypathfn normalize
+  "Returns the path with redundant name elements eliminated."
+  java.nio.file.Path .normalize)
+
+;; TODO: Implement register
+
 (defbinarypathfn relativize
   "Returns a relative path between the path and other."
-   java.nio.file.Path .relativize)
+  java.nio.file.Path .relativize)
 
 (defbinarypathfn resolve-path
   "Resolves the other against the path."
-   java.nio.file.Path .resolve)
+  java.nio.file.Path .resolve)
 
 (defbinarypathfn resolve-sibling
   "Resolves the other against the path's parent."
-   java.nio.file.Path .resolveSibling)
+  java.nio.file.Path .resolveSibling)
 
-(defn- link-options
-  "Returns an array of the LinkOptions."
-  ^"[Ljava.nio.file.LinkOption;"
-  [& options]
-  (into-array LinkOption options))
-
-(defn real-path
-  "Returns the real path of an existing file according to the
-  link-options."
-  {:arglists '([path link-options])
-   :tag java.nio.file.Path}
-  [^Path p & options]
-  (.toRealPath p (apply link-options options)))
+(defbinarypathfn starts-with?
+  "Returns true if the path starts with the other, false otherwise."
+  Boolean .startsWith)
 
 ;;;
 ;;; File methods
