@@ -2,8 +2,53 @@
   "Wrapper for java.nio.file. All functions that accept a Path will be
   coerced to a Path if possible."
   (:require [org.tobereplaced.nio.file.protocols :as p])
-  (:import (java.nio.file FileVisitResult FileVisitor Files LinkOption
-                          Path)))
+  (:import (java.nio.file FileVisitResult FileVisitor Files LinkOption)
+           (java.nio.file.attribute FileAttribute)))
+
+;;;
+;;; Definition macros, to eliminate redundancy in function
+;;; definitions.
+;;;
+
+(defmacro ^:private defunarypathfn
+  "Defines a function of a single path."
+  [name docstring tag method]
+  `(defn ~name
+     ~docstring
+     {:arglists '(~'[path])
+      :tag ~tag}
+     [p#]
+     (~method (path p#))))
+
+(defmacro ^:private defbinarypathfn
+  "Defines a function of two paths."
+  [name docstring tag method]
+  `(defn ~name
+     ~docstring
+     {:arglists '(~'[path other])
+      :tag ~tag}
+     [p# other#]
+     (~method (path p#) (path other#))))
+
+(defmacro ^:private defcreatefn
+  "Defines a create function of a path and file attributes."
+  [name docstring method]
+  `(defn ~name
+     ~docstring
+     {:arglists '(~'[path & file-attributes])
+      :tag java.nio.file.Path}
+     [p# & attrs#]
+     (~method (path p#) (into-array FileAttribute attrs#))))
+
+(defmacro ^:private deflinkfn
+  "Defines a function of a path and link options."
+  [name docstring tag method]
+  `(defn ~name
+     ~docstring
+     {:arglists '(~'[path & link-options])
+      :tag ~tag}
+     [p# & options#]
+     (~method (path p#) (into-array LinkOption options#))))
 
 ;;;
 ;;; Path creation and coercion.
@@ -31,13 +76,10 @@
   [& args]
   (.toAbsolutePath ^java.nio.file.Path (apply path args)))
 
-(defn real-path
+(deflinkfn real-path
   "Returns the real path of an existing file according to the
   link-options."
-  {:arglists '([path link-options])
-   :tag java.nio.file.Path}
-  [p & options]
-  (.toRealPath (path p) (into-array LinkOption options)))
+  java.nio.file.Path .toRealPath)
 
 ;;;
 ;;; Path functions, ordered lexicographically according to their
@@ -45,9 +87,6 @@
 ;;;
 ;;; Do not need to implement .equals, .toURI, or .toString because of
 ;;; other clojure facilities.
-;;;
-;;; Should not implement .getFileSystem because it doesn't make sense
-;;; with coercion.
 ;;;
 ;;; Do not need to implement .getName, .getNameCount, or .iterator
 ;;; because you can just iterate over the path as a sequence.
@@ -57,26 +96,6 @@
 ;;;
 ;;; We already implemented .toAbsolutePath and .toRealPath above.
 ;;;
-
-(defmacro ^:private defunarypathfn
-  "Defines a function of a single path from a Path method."
-  [name docstring tag method]
-  `(defn ~name
-     ~docstring
-     {:arglists '(~'[path])
-      :tag ~tag}
-     [p#]
-     (~method (path p#))))
-
-(defmacro ^:private defbinarypathfn
-  "Defines a function of two paths from a Path method."
-  [name docstring tag method]
-  `(defn ~name
-     ~docstring
-     {:arglists '(~'[path other])
-      :tag ~tag}
-     [p# other#]
-     (~method (path p#) (path other#))))
 
 (defbinarypathfn compare-to
   "Returns an integer comparing path to the other lexicographically."
@@ -89,6 +108,10 @@
 (defunarypathfn file-name
   "Returns the name of the file or directory denoted by the path."
   java.nio.file.Path .getFileName)
+
+(defunarypathfn file-system
+  "Returns the file system that created the path."
+  java.nio.file.FileSystem .getFileSystem)
 
 (defunarypathfn parent
   "Returns the parent of the path if it has one, nil otherwise."
@@ -146,51 +169,123 @@
   [source target & copy-options]
   (p/copy source target copy-options))
 
-;; TODO: Implement createDirectories
-;; TODO: Implement createDirectory
-;; TODO: Implement createFile
-;; TODO: Implement createLink
+(defcreatefn create-directories!
+  "Creates a directory by creating all nonexistent parent directories
+  first."
+  Files/createDirectories)
+
+(defcreatefn create-directory!
+  "Creates a new directory."
+  Files/createDirectory)
+
+(defcreatefn create-file!
+  "Creates a new empty file."
+  Files/createFile)
+
+(defbinarypathfn create-link!
+  "Creates a new link for an existing file."
+  java.nio.file.Path Files/createLink)
+
 ;; TODO: Implement createSymbolicLink
 ;; TODO: Implement createTempDirectory
 ;; TODO: Implement createTempFile
 
-(defn delete!
+(defunarypathfn delete!
   "Deletes the file at path."
-  ^{:arglists '([path])}
-  [p]
-  (Files/delete (path p)))
+  nil Files/delete)
 
-;; TODO: Implement deleteIfExists
-;; TODO: Implement exists
+(defunarypathfn delete-if-exists!
+  "Deletes the file at path if it exists. Returns true if the file was
+  deleted, false otherwise."
+  Boolean Files/deleteIfExists)
+
+(deflinkfn exists?
+  "Returns true if the file exists, false otherwise."
+  Boolean Files/exists)
+
 ;; TODO: Implement getAttribute
 ;; TODO: What to do about getFileAttributeView?
-;; TODO: Implement getFileStore
-;; TODO: Implement getLastModifiedTime
-;; TODO: Implement getOwner
+
+(defunarypathfn file-store
+  "Returns the file store where the file is located."
+  java.nio.file.FileStore Files/getFileStore)
+
+(deflinkfn last-modified-time
+  "Returns the last modified time for the file."
+  java.nio.file.attribute.FileTime Files/getLastModifiedTime)
+
+(deflinkfn owner
+  "Returns the owner of the file."
+  java.nio.file.attribute.UserPrincipal Files/getOwner)
+
 ;; TODO: Implement getPosixFilePermissions
-;; TODO: Implement isDirectory
-;; TODO: Implement isExecutable
-;; TODO: Implement isHidden
-;; TODO: Implement isReadable
-;; TODO: Implement isRegularFile
-;; TODO: Implement isSameFile
-;; TODO: Implement isSymbolicLink
-;; TODO: Implement isWritable
+
+(deflinkfn directory?
+  "Returns true if the file is a directory, false otherwise."
+  Boolean Files/isDirectory)
+
+(defunarypathfn executable?
+  "Returns true if the file is executable, false otherwise."
+  Boolean Files/isExecutable)
+
+(defunarypathfn hidden?
+  "Returns true if the file is hidden, false otherwise."
+  Boolean Files/isHidden)
+
+(defunarypathfn readable?
+  "Returns true if the file is readable, false otherwise."
+  Boolean Files/isReadable)
+
+(deflinkfn regular-file?
+  "Returns true if the file is a regular file, false otherwise."
+  Boolean Files/isRegularFile)
+
+;; This could be variadic, but not sure how to make that performant.
+(defbinarypathfn same-file?
+  "Returns true if the two paths are the same, false otherwise."
+  Boolean Files/isSameFile)
+
+(defunarypathfn symbolic-link?
+  "Returns true if the file is a symbolic link, false otherwise."
+  Boolean Files/isSymbolicLink)
+
+(defunarypathfn writable?
+  "Returns true if the file is a writable, false otherwise."
+  Boolean Files/isWritable)
+
 ;; TODO: Implement move
 ;; TODO: What to do about newBufferedReader/Writer?
 ;; TODO: What to do about newByteChannel/DirectoryStream?
 ;; TODO: What to do about newInputStream/OutputStream?
-;; TODO: Implement notExists
-;; TODO: Implement probeContentType
-;; TODO: Implement readAllBytes
+
+(deflinkfn not-exists?
+  "Returns true if the file does not exist, false otherwise."
+  Boolean Files/notExists)
+
+(defunarypathfn probe-content-type
+  "Returns true if the file is a writable, false otherwise."
+  String Files/probeContentType)
+
+(defunarypathfn read-all-bytes
+  "Returns the bytes from the file."
+  "[B" Files/readAllBytes)
+
 ;; TODO: Implement readAllLines
 ;; TODO: Implement readAttributes
-;; TODO: Implement readSymbolicLink
+
+(defunarypathfn read-symbolic-link
+  "Returns the target of a symbolic link."
+  java.nio.file.Path Files/readSymbolicLink)
+
 ;; TODO: Implement setAttribute
 ;; TODO: Implement setLastModifiedTime
 ;; TODO: Implement setOwner
 ;; TODO: Implement setPosixFilePermissions
-;; TODO: Implement size
+
+(defunarypathfn size
+  "Returns the size of the file in bytes."
+  Long Files/size)
+
 ;; TODO: Implement write
 ;; TODO: Conditionally implement 1.8 features
 
