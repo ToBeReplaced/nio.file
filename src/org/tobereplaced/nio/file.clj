@@ -84,8 +84,8 @@
   (let [kinds {:create StandardWatchEventKinds/ENTRY_CREATE
                :delete StandardWatchEventKinds/ENTRY_DELETE
                :modify StandardWatchEventKinds/ENTRY_MODIFY}
-        events (into-array (map  kinds event-set))]
-   (. ^java.nio.file.Path path register watcher (into-array event-set))))
+        events (into-array (map kinds event-set))]
+    (. ^java.nio.file.Path path register watcher (into-array events))))
 
 (deflinkfn real-path
   "Returns the real path of an existing file according to the
@@ -139,8 +139,6 @@
 (defunarypathfn normalize
   "Returns the path with redundant name elements eliminated."
   java.nio.file.Path .normalize)
-
-;; TODO: Implement register
 
 (defbinarypathfn relativize
   "Returns a relative path between the path and other."
