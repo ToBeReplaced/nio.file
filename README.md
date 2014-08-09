@@ -49,6 +49,25 @@ which can be difficult to construct.
 This library provides functions to create reified instances of a
 `FileVisitor` from user-provided functions.
 
+# What belongs here? #
+
+The goal of this library is to make it so that everything you *could*
+do with java.nio.file, you can do easier with this library.
+
+Towards this goal, if you find something that you must reach directly
+to java.nio.file for, please file an issue. It must be rectified.
+
+This is not a utility library. This library is only here to make
+java.nio.file easier to use. Consequently, most functions herein are
+just wrappers around existing java methods with coercion where
+appropriate. The rest of the library is made up of constructor
+functions to implement required interfaces for arguments to the
+existing java methods.
+
+As an example, implementing "remove-directory" is out of
+scope. However, [walkthrough.clj] will show you how to do that and
+other utility-like-things quite easily.
+
 # Walkthrough #
 
 See [walkthrough.clj] for examples of using this library.
