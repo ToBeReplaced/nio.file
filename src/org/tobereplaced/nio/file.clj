@@ -81,10 +81,12 @@
   "Sets watcher to respond to changes to this path. event-set is a collection
    holding keywords representing the event types to watch."
   [path watcher event-set]
-  (let [kinds {:create StandardWatchEventKinds/ENTRY_CREATE
-               :delete StandardWatchEventKinds/ENTRY_DELETE
-               :modify StandardWatchEventKinds/ENTRY_MODIFY}
-        events (into-array (map kinds event-set))]
+  (let [kinds {:entry-create StandardWatchEventKinds/ENTRY_CREATE
+               :entry-delete StandardWatchEventKinds/ENTRY_DELETE
+               :entry-modify StandardWatchEventKinds/ENTRY_MODIFY}
+        events (into-array (map (fn [entry]
+                                  (get kinds entry entry))
+                                event-set))]
     (. ^java.nio.file.Path path register watcher (into-array events))))
 
 (deflinkfn real-path

@@ -110,7 +110,9 @@
   (let [watched-path (path "test")
         fs (file-system watched-path)
         watcher (. fs newWatchService)
-        watch-key (register watched-path watcher #{:create :delete :modify})
+        watch-key (register watched-path watcher #{:entry-create
+                                                   :entry-delete
+                                                   :entry-modify})
         events (atom {})
         counter (future
                   (while true
