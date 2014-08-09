@@ -79,15 +79,17 @@
 
 (defn register
   "Sets watcher to respond to changes to this path. event-set is a collection
-   holding keywords representing the event types to watch."
-  [path watcher event-set]
+   holding keywords representing the event types to watch, or any other values,
+   which will be used as is."
+  [watched-path watcher event-set]
   (let [kinds {:entry-create StandardWatchEventKinds/ENTRY_CREATE
                :entry-delete StandardWatchEventKinds/ENTRY_DELETE
                :entry-modify StandardWatchEventKinds/ENTRY_MODIFY}
         events (into-array (map (fn [entry]
                                   (get kinds entry entry))
                                 event-set))]
-    (. ^java.nio.file.Path path register watcher (into-array events))))
+    (.register ^java.nio.file.Path (path watched-path) watcher
+               (into-array events))))
 
 (deflinkfn real-path
   "Returns the real path of an existing file according to the
