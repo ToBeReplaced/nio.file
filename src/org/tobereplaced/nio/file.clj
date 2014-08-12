@@ -2,7 +2,8 @@
   "Wrapper for java.nio.file. All functions that accept a Path will be
   coerced to a Path if possible."
   (:require [org.tobereplaced.nio.file.protocols :as p])
-  (:import (java.nio.file FileVisitResult FileVisitor Files LinkOption)
+  (:import (java.nio.file FileVisitResult FileVisitor Files LinkOption
+                          StandardWatchEventKinds)
            (java.nio.file.attribute FileAttribute)))
 
 ;;;
@@ -76,6 +77,20 @@
   [& args]
   (.toAbsolutePath ^java.nio.file.Path (apply path args)))
 
+(defn register
+  "Sets watcher to respond to changes to this path. event-set is a collection
+   holding keywords representing the event types to watch, or any other values,
+   which will be used as is."
+  [watched-path watcher event-set]
+  (let [kinds {:entry-create StandardWatchEventKinds/ENTRY_CREATE
+               :entry-delete StandardWatchEventKinds/ENTRY_DELETE
+               :entry-modify StandardWatchEventKinds/ENTRY_MODIFY}
+        events (into-array (map (fn [entry]
+                                  (get kinds entry entry))
+                                event-set))]
+    (.register ^java.nio.file.Path (path watched-path) watcher
+               (into-array events))))
+
 (deflinkfn real-path
   "Returns the real path of an existing file according to the
   link-options."
@@ -94,8 +109,8 @@
 ;;; Do not need to implement subpath because you can reduce with
 ;;; resolve over the path.
 ;;;
-;;; We already implemented .toAbsolutePath and .toRealPath above.
-;;;
+;;; We already implemented .toAbsolutePath, .register and .toRealPath
+;;; above.
 
 (defbinarypathfn compare-to
   "Returns an integer comparing path to the other lexicographically."
@@ -128,8 +143,6 @@
 (defunarypathfn normalize
   "Returns the path with redundant name elements eliminated."
   java.nio.file.Path .normalize)
-
-;; TODO: Implement register
 
 (defbinarypathfn relativize
   "Returns a relative path between the path and other."
