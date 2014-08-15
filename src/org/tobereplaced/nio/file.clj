@@ -2,9 +2,10 @@
   "Wrapper for java.nio.file. All functions that accept a Path will be
   coerced to a Path if possible."
   (:require [org.tobereplaced.nio.file.protocols :as p])
-  (:import (java.nio.file FileSystems FileVisitResult FileVisitor Files
-                          LinkOption StandardWatchEventKinds)
-           (java.nio.file.attribute FileAttribute)))
+  (:import (java.nio.file FileSystem FileSystems FileVisitResult FileVisitor
+                          Files LinkOption StandardWatchEventKinds)
+           (java.nio.file.attribute FileAttribute)
+           (java.nio.file.spi FileSystemProvider)))
 
 ;;;
 ;;; Definition macros, to eliminate redundancy in function
@@ -52,7 +53,8 @@
      (~method (path p#) (into-array LinkOption options#))))
 
 ;;;
-;;; Creation and coercion for Paths, FileSystems, and FileStores.
+;;; Creation and coercion for Paths, FileSystems, FileStores, and
+;;; FileSystemProviders.
 ;;;
 
 (defn path
@@ -79,8 +81,8 @@
 
 (defn register
   "Sets watcher to respond to changes to this path. event-set is a collection
-   holding keywords representing the event types to watch, or any other values,
-   which will be used as is."
+  holding keywords representing the event types to watch, or any other values,
+  which will be used as is."
   [watched-path watcher event-set]
   (let [kinds {:entry-create StandardWatchEventKinds/ENTRY_CREATE
                :entry-delete StandardWatchEventKinds/ENTRY_DELETE
@@ -99,13 +101,15 @@
 (defn file-system
   "Returns the FileSystem located at the URI, the FileSystem used to
   create the Path, or the default FileSystem when called with no
-  arguments.
+  arguments. Passing in a FileSystem returns itself.
 
-  This function is extensible through the FileSystem protocol. "
-  {:arglists '([] [path] [uri])
+  This function is extensible through the FileSystem protocol."
+  {:arglists '([] [path] [uri] [fs])
    :tag java.nio.file.FileSystem}
   ([] (FileSystems/getDefault))
   ([this] (p/file-system this)))
+
+;; TODO: Implement FileSystems/newFileSystem
 
 (defn file-stores
   "Returns an iterable of the FileStores of a FileSystem or of the
@@ -114,7 +118,14 @@
   ([] (file-stores (file-system)))
   ([^FileSystem fs] (.getFileStores fs)))
 
-;; TODO: Implement FileSystems/newFileSystem
+(defn file-system-provider
+  "Returns the FileSystemProvider corresponding to the FileSystem, URI, Path,
+  or the default FileSystem if none is provided.
+
+  This function is extensible through the FileSystemProvider protocol."
+  {:arglists '([] [fs] [path] [uri])
+   :tag java.nio.file.spi.FileSystemProvider}
+  ([& args] (.provider ^FileSystem (apply file-system args))))
 
 ;;;
 ;;; Path functions, ordered lexicographically according to their
@@ -389,3 +400,18 @@
 ;;; FileSystem functions, ordered lexicographically according to their
 ;;; corresponding methods on the FileSystem class.
 ;;;
+;;; Do not need to implement .close because of other clojure
+;;; facilities.
+;;;
+;;; We already implemented .getFileStores, .getPath, and .provider
+;;; above.
+;;;
+
+;; TODO: Implement getPathMatcher
+;; TODO: Implement getRootDirectories
+;; TODO: Implement getSeparator
+;; TODO: Implement getUserPrincipalLookupService
+;; TODO: Implement isOpen
+;; TODO: Implement isReadOnly
+;; TODO: Implement newWatchService
+;; TODO: Implement supportedFileAttributeViews
