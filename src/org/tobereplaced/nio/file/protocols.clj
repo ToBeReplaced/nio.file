@@ -4,8 +4,8 @@
            (java.net URI)
            (java.nio.charset Charset StandardCharsets)
            (java.nio.file CopyOption FileSystems Files OpenOption Path
-                          Paths StandardWatchEventKinds
-                          WatchEvent$Kind)))
+                          Paths StandardWatchEventKinds WatchEvent$Kind)
+           (java.nio.file.attribute FileAttribute)))
 
 (def ^:private empty-string-array (into-array String []))
 
@@ -105,6 +105,43 @@
   Object
   (copy [this target options]
     (copy (unary-path this) target options)))
+
+;; Private implementation protocol to allow for dispatch when a
+;; directory is provided.
+(defprotocol ^:private CreateTempDirectory
+             (create-temp-directory [prefix dir attrs]))
+
+(extend-protocol CreateTempDirectory
+  nil
+  (create-temp-directory [_ prefix attrs]
+    (Files/createTempDirectory prefix (into-array FileAttribute attrs)))
+  FileAttribute
+  (create-temp-directory [attr prefix attrs]
+    (Files/createTempDirectory prefix
+                               (into-array FileAttribute (cons attr attrs))))
+  String
+  (create-temp-directory [prefix dir attrs]
+    (Files/createTempDirectory (unary-path dir) prefix
+                               (into-array FileAttribute attrs))))
+
+;; Private implementation protocols to allow for dispatch when a
+;; directory or suffix is provided.
+(defprotocol ^:private CreateTempFile
+             (create-temp-file [suffix dir prefix attrs]))
+
+(extend-protocol CreateTempFile
+  nil
+  (create-temp-file [_ prefix suffix attrs]
+    (Files/createTempFile prefix suffix
+                          (into-array FileAttribute attrs)))
+  FileAttribute
+  (create-temp-file [attr prefix suffix attrs]
+    (Files/createTempFile prefix suffix
+                          (into-array FileAttribute (cons attr attrs))))
+  String
+  (create-temp-file [suffix dir prefix attrs]
+    (Files/createTempFile (unary-path dir) prefix suffix
+                          (into-array FileAttribute attrs))))
 
 ;; Private implementation protocol to allow for dispatch based on
 ;; whether a charset is provided or not.

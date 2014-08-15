@@ -232,9 +232,36 @@
   "Creates a new link for an existing file."
   java.nio.file.Path Files/createLink)
 
-;; TODO: Implement createSymbolicLink
-;; TODO: Implement createTempDirectory
-;; TODO: Implement createTempFile
+(defn create-symbolic-link!
+  "Creates a symbolic link form path to target."
+  {:arglists '([path target & attrs])
+   :tag java.nio.file.Path}
+  [p target & attrs]
+  (Files/createSymbolicLink (path p) (path target)
+                            (into-array FileAttribute attrs)))
+
+(defn create-temp-directory!
+  "Creates a temporary directory with the given prefix in the given
+  directory or the default temporary directory if none is provided."
+  {:arglists '([path prefix & attrs] [prefix & attrs])}
+  [this & more]
+  (p/create-temp-directory (first more) this (rest more)))
+
+(defn create-temp-file!
+  "Creates a temporary file with the given prefix and suffix in the
+  given directory or the default temporary directory if none is
+  provided.
+
+  Unlike the Files/createTempFile implementation, you may not pass nil
+  as the suffix when specifying a directory. This is because we would
+  be unable to determine if a string in the first argument is intended
+  to be a path to the directory or a prefix."
+  {:arglists (list '[prefix]
+                   '[prefix suffix]
+                   '[prefix suffix & attrs]
+                   '[dir prefix suffix & attrs])}
+  [this & [x y & more]]
+  (p/create-temp-file y this x  more))
 
 (defunarypathfn delete!
   "Deletes the file at path."
