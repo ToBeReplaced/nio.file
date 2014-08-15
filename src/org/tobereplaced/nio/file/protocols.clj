@@ -1,9 +1,11 @@
 (ns org.tobereplaced.nio.file.protocols
-  (:import (java.io File InputStream OutputStream)
+  (:import (clojure.lang Keyword)
+           (java.io File InputStream OutputStream)
            (java.net URI)
            (java.nio.charset Charset StandardCharsets)
            (java.nio.file CopyOption FileSystems Files OpenOption Path
-                          Paths)))
+                          Paths StandardWatchEventKinds
+                          WatchEvent$Kind)))
 
 (def ^:private empty-string-array (into-array String []))
 
@@ -39,6 +41,23 @@
   (file-system [this] (FileSystems/getFileSystem this))
   Path
   (file-system [this] (.getFileSystem this)))
+
+(defprotocol WatchEventKind
+  (watch-event-kind [this]))
+
+(extend-protocol WatchEventKind
+  WatchEvent$Kind
+  (watch-event-kind [this] this)
+  Keyword
+  (watch-event-kind [this]
+    (or (get {:entry-create StandardWatchEventKinds/ENTRY_CREATE
+              :entry-delete StandardWatchEventKinds/ENTRY_DELETE
+              :entry-modify StandardWatchEventKinds/ENTRY_MODIFY}
+             this)
+        (->> this
+             (format "No StandardWatchEventKind found for keyword: %s")
+             IllegalArgumentException.
+             throw))))
 
 ;; Private implementation protocol to allow for dispatch when it is
 ;; known that we are copying from an input stream.

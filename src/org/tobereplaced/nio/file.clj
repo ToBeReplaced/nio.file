@@ -7,8 +7,8 @@
   FileSystem."
   (:require [org.tobereplaced.nio.file.protocols :as p])
   (:import (java.nio.file FileSystems FileVisitResult FileVisitor Files
-                          LinkOption StandardWatchEventKinds
-                          WatchService)
+                          LinkOption WatchEvent$Kind
+                          WatchEvent$Modifier WatchService)
            (java.nio.file.attribute FileAttribute
                                     UserPrincipalLookupService)))
 
@@ -68,8 +68,8 @@
      ([fs#] (~method (file-system fs#)))))
 
 ;;;
-;;; Creation and coercion for Paths, FileSystems, FileStores, and
-;;; FileSystemProviders.
+;;; Creation and coercion for Paths, FileSystems, and
+;;; WatchEvent.Kinds.
 ;;;
 
 (defn path
@@ -94,20 +94,6 @@
   [& args]
   (.toAbsolutePath ^java.nio.file.Path (apply path args)))
 
-(defn register
-  "Sets watcher to respond to changes to this path. event-set is a collection
-  holding keywords representing the event types to watch, or any other values,
-  which will be used as is."
-  [watched-path watcher event-set]
-  (let [kinds {:entry-create StandardWatchEventKinds/ENTRY_CREATE
-               :entry-delete StandardWatchEventKinds/ENTRY_DELETE
-               :entry-modify StandardWatchEventKinds/ENTRY_MODIFY}
-        events (into-array (map (fn [entry]
-                                  (get kinds entry entry))
-                                event-set))]
-    (.register ^java.nio.file.Path (path watched-path) watcher
-               (into-array events))))
-
 (deflinkfn real-path
   "Returns the real path of an existing file according to the
   link-options."
@@ -125,6 +111,16 @@
    :tag java.nio.file.FileSystem}
   ([] (FileSystems/getDefault))
   ([this] (p/file-system this)))
+
+(defn watch-event-kind
+  "Returns a WatchEvent.Kind from the keyword. The keyword may
+  correspond to any of the StandardWatchEventKinds. Passing in a
+  WatchEvent.Kind returns itself.
+
+  This function is extensible through the WatchEventKind protocol."
+  {:arglists '([:entry-create] [:entry-delete] [:entry-modify] [event-kind])
+   :tag java.nio.file.WatchEvent$Kind}
+  ([this] (p/watch-event-kind this)))
 
 ;;;
 ;;; Path functions, ordered lexicographically according to their
@@ -170,6 +166,17 @@
 (defunarypathfn normalize
   "Returns the path with redundant name elements eliminated."
   java.nio.file.Path .normalize)
+
+(defn register!
+  "Registers the file located by the path with the watch service and
+  returns a WatchKey."
+  {:arglists '([path watcher events & modifiers])
+   :tag java.nio.file.WatchKey}
+  [p watcher events & modifiers]
+  (.register (path p)
+             watcher
+             (into-array WatchEvent$Kind (map watch-event-kind events))
+             (into-array WatchEvent$Modifier modifiers)))
 
 (defbinarypathfn relativize
   "Returns a relative path between the path and other."
