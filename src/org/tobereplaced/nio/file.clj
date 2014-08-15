@@ -2,8 +2,8 @@
   "Wrapper for java.nio.file. All functions that accept a Path will be
   coerced to a Path if possible."
   (:require [org.tobereplaced.nio.file.protocols :as p])
-  (:import (java.nio.file FileVisitResult FileVisitor Files LinkOption
-                          StandardWatchEventKinds)
+  (:import (java.nio.file FileSystems FileVisitResult FileVisitor Files
+                          LinkOption StandardWatchEventKinds)
            (java.nio.file.attribute FileAttribute)))
 
 ;;;
@@ -52,7 +52,7 @@
      (~method (path p#) (into-array LinkOption options#))))
 
 ;;;
-;;; Path creation and coercion.
+;;; Creation and coercion for Paths and FileSystems
 ;;;
 
 (defn path
@@ -96,6 +96,17 @@
   link-options."
   java.nio.file.Path .toRealPath)
 
+(defn file-system
+  "Returns the FileSystem located at the URI, the FileSystem used to
+  create the Path, or the default FileSystem when called with no
+  arguments.
+
+  This function is extensible through the FileSystem protocol. "
+  {:arglists '([] [path] [uri])
+   :tag java.nio.file.FileSystem}
+  ([] (FileSystems/getDefault))
+  ([this] (p/file-system this)))
+
 ;;;
 ;;; Path functions, ordered lexicographically according to their
 ;;; corresponding methods.
@@ -109,8 +120,9 @@
 ;;; Do not need to implement subpath because you can reduce with
 ;;; resolve over the path.
 ;;;
-;;; We already implemented .toAbsolutePath, .register and .toRealPath
-;;; above.
+;;; We already implemented .toAbsolutePath, .toRealPath, and
+;;; .getFileSystem above.
+;;;
 
 (defbinarypathfn compare-to
   "Returns an integer comparing path to the other lexicographically."
@@ -123,10 +135,6 @@
 (defunarypathfn file-name
   "Returns the name of the file or directory denoted by the path."
   java.nio.file.Path .getFileName)
-
-(defunarypathfn file-system
-  "Returns the file system that created the path."
-  java.nio.file.FileSystem .getFileSystem)
 
 (defunarypathfn parent
   "Returns the parent of the path if it has one, nil otherwise."
@@ -367,3 +375,9 @@
   [start visitor & {:keys [file-visit-options max-depth]
                     :or {file-visit-options #{} max-depth Integer/MAX_VALUE}}]
   (Files/walkFileTree (path start) file-visit-options max-depth visitor))
+
+;;;
+;;; FileSystem functions
+;;;
+
+;; TODO: Implement newFileSystem

@@ -2,7 +2,7 @@
   (:import (java.io File InputStream OutputStream)
            (java.net URI)
            (java.nio.charset Charset StandardCharsets)
-           (java.nio.file CopyOption FileSystem Files OpenOption Path
+           (java.nio.file CopyOption FileSystems Files OpenOption Path
                           Paths)))
 
 (def ^:private empty-string-array (into-array String []))
@@ -24,15 +24,24 @@
   (nary-path [this more]))
 
 (extend-protocol NaryPath
-  FileSystem
+  java.nio.file.FileSystem
   (nary-path [this [s & more]] (.getPath this s (into-array String more)))
   String
   (nary-path [this more] (Paths/get this (into-array String more))))
 
+(defprotocol FileSystem
+  (file-system [this]))
+
+(extend-protocol FileSystem
+  URI
+  (file-system [this] (FileSystems/getFileSystem this))
+  Path
+  (file-system [this] (.getFileSystem this)))
+
 ;; Private implementation protocol to allow for dispatch when it is
 ;; known that we are copying from an input stream.
 (defprotocol ^:private CopyFromInputStream
-  (copy-from-input-stream [this source options]))
+             (copy-from-input-stream [this source options]))
 
 (extend-protocol CopyFromInputStream
   Path
@@ -47,7 +56,7 @@
 ;; Private implementation protocol to allow for dispatch when it is
 ;; known that we are copying from a path.
 (defprotocol ^:private CopyFromPath
-  (copy-from-path [this source options]))
+             (copy-from-path [this source options]))
 
 (extend-protocol CopyFromPath
   OutputStream
@@ -79,7 +88,7 @@
 ;; Private implementation protocol to allow for dispatch based on
 ;; whether a charset is provided or not.
 (defprotocol ^:private WriteLines
-  (write-lines [this path lines options]))
+             (write-lines [this path lines options]))
 
 (extend-protocol WriteLines
   Charset
