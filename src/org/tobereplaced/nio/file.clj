@@ -1,11 +1,16 @@
 (ns org.tobereplaced.nio.file
   "Wrapper for java.nio.file. All functions that accept a Path will be
-  coerced to a Path if possible."
+  coerced to a Path if possible. All functions that accept a
+  FileSystem will be coerced to a FileSystem if
+  possible. Additionally, all functions that accept a FileSystem can
+  accept no argument in exchange for the default
+  FileSystem."
   (:require [org.tobereplaced.nio.file.protocols :as p])
-  (:import (java.nio.file FileSystem FileSystems FileVisitResult FileVisitor
-                          Files LinkOption StandardWatchEventKinds)
-           (java.nio.file.attribute FileAttribute)
-           (java.nio.file.spi FileSystemProvider)))
+  (:import (java.nio.file FileSystems FileVisitResult FileVisitor Files
+                          LinkOption StandardWatchEventKinds
+                          WatchService)
+           (java.nio.file.attribute FileAttribute
+                                    UserPrincipalLookupService)))
 
 ;;;
 ;;; Definition macros, to eliminate redundancy in function
@@ -51,6 +56,16 @@
       :tag ~tag}
      [p# & options#]
      (~method (path p#) (into-array LinkOption options#))))
+
+(defmacro ^:private deffsfn
+  "Defines a function on a filesystem."
+  [name docstring tag method]
+  `(defn ~name
+     ~docstring
+     {:arglists '(~'[] ~'[fs])
+      :tag ~tag}
+     ([] (~name (file-system)))
+     ([fs#] (~method (file-system fs#)))))
 
 ;;;
 ;;; Creation and coercion for Paths, FileSystems, FileStores, and
@@ -104,28 +119,12 @@
   arguments. Passing in a FileSystem returns itself.
 
   This function is extensible through the FileSystem protocol."
+  ;; TODO: Implement FileSystems/newFileSystem as part of file-system
+  ;; and add notes about being closeable.
   {:arglists '([] [path] [uri] [fs])
    :tag java.nio.file.FileSystem}
   ([] (FileSystems/getDefault))
   ([this] (p/file-system this)))
-
-;; TODO: Implement FileSystems/newFileSystem
-
-(defn file-stores
-  "Returns an iterable of the FileStores of a FileSystem or of the
-  default FileSystem if none is provided."
-  ;; TODO: Is there any kind of type hint we can provide?
-  ([] (file-stores (file-system)))
-  ([^FileSystem fs] (.getFileStores fs)))
-
-(defn file-system-provider
-  "Returns the FileSystemProvider corresponding to the FileSystem, URI, Path,
-  or the default FileSystem if none is provided.
-
-  This function is extensible through the FileSystemProvider protocol."
-  {:arglists '([] [fs] [path] [uri])
-   :tag java.nio.file.spi.FileSystemProvider}
-  ([& args] (.provider ^FileSystem (apply file-system args))))
 
 ;;;
 ;;; Path functions, ordered lexicographically according to their
@@ -403,15 +402,67 @@
 ;;; Do not need to implement .close because of other clojure
 ;;; facilities.
 ;;;
-;;; We already implemented .getFileStores, .getPath, and .provider
-;;; above.
+;;; We already implemented .getPath above.
 ;;;
 
+(deffsfn file-stores
+  "Returns an iterable of the FileStores of a file system."
+  ;; TODO: Is there any kind of type hint we can provide for this?
+  nil
+  .getFileStores)
+
 ;; TODO: Implement getPathMatcher
-;; TODO: Implement getRootDirectories
-;; TODO: Implement getSeparator
-;; TODO: Implement getUserPrincipalLookupService
-;; TODO: Implement isOpen
-;; TODO: Implement isReadOnly
-;; TODO: Implement newWatchService
-;; TODO: Implement supportedFileAttributeViews
+
+(deffsfn root-directories
+  "Returns an iterable of the paths of the root directories of the
+  file system"
+  ;; TODO: What is the type-hint for an Iterable of Paths?
+  nil
+  .getRootDirectories)
+
+(deffsfn separator
+  "Returns the name separator of the file system."
+  String
+  .getSeparator)
+
+(deffsfn user-principal-lookup-service
+  "Returns the UserPrincipalLookupService for the filesystem."
+  UserPrincipalLookupService
+  .getUserPrincipalLookupService)
+
+(deffsfn open?
+  "Returns true if the file system is open, false otherwise."
+  Boolean
+  .isOpen)
+
+(deffsfn read-only?
+  "Returns true if the file system is read-only, false otherwise."
+  Boolean
+  .isReadOnly)
+
+;; TODO: There should be an extension library that reifies a
+;; WatchService from a platform based WatchService and acts like a
+;; core.async channel.
+(deffsfn watch-service
+  "Returns a new WatchService for the file system. Should be used
+  inside with-open to ensure the WatchService is properly closed."
+  WatchService
+  .newWatchService)
+
+(deffsfn provider
+  "Returns the FileSystemProvider corresponding to the file system."
+  java.nio.file.spi.FileSystemProvider
+  .provider)
+
+(deffsfn supported-file-attribute-views
+  "Returns a set of names of file attribute views supported by the
+  file system."
+  nil
+  .supportedFileAttributeViews)
+
+;;;
+;;; TODO: Implement FileSystemProvider methods that aren't delegated
+;;; by Files.
+;;;
+;;; TODO: Implement UserPrincipalLookupService methods and coercion.
+;;;

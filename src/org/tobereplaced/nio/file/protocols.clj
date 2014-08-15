@@ -33,6 +33,8 @@
   (file-system [this]))
 
 (extend-protocol FileSystem
+  java.nio.file.FileSystem
+  (file-system [this] this)
   URI
   (file-system [this] (FileSystems/getFileSystem this))
   Path
