@@ -52,7 +52,7 @@
      (~method (path p#) (into-array LinkOption options#))))
 
 ;;;
-;;; Creation and coercion for Paths and FileSystems
+;;; Creation and coercion for Paths, FileSystems, and FileStores.
 ;;;
 
 (defn path
@@ -106,6 +106,15 @@
    :tag java.nio.file.FileSystem}
   ([] (FileSystems/getDefault))
   ([this] (p/file-system this)))
+
+(defn file-stores
+  "Returns an iterable of the FileStores of a FileSystem or of the
+  default FileSystem if none is provided."
+  ;; TODO: Is there any kind of type hint we can provide?
+  ([] (file-stores (file-system)))
+  ([^FileSystem fs] (.getFileStores fs)))
+
+;; TODO: Implement FileSystems/newFileSystem
 
 ;;;
 ;;; Path functions, ordered lexicographically according to their
@@ -377,7 +386,6 @@
   (Files/walkFileTree (path start) file-visit-options max-depth visitor))
 
 ;;;
-;;; FileSystem functions
+;;; FileSystem functions, ordered lexicographically according to their
+;;; corresponding methods on the FileSystem class.
 ;;;
-
-;; TODO: Implement newFileSystem
