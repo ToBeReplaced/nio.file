@@ -18,18 +18,19 @@
 ;;; definitions.
 ;;;
 
-(defmacro ^:private defunarypathfn
+(defmacro ^:private defpathfn
   "Defines a function of a single path."
-  [name docstring tag method]
-  `(defn ~name
-     ~docstring
-     {:arglists '(~'[path])
-      :tag ~tag}
-     [p#]
-     (~method (path p#))))
+  [name docstring tag method & args]
+  (let [fn-args (repeat (count args) (gensym))]
+    `(defn ~name
+       ~docstring
+       {:arglists '(~(vec (concat '[path] args)))
+        :tag ~tag}
+       [p# ~@fn-args]
+       (~method (path p#) ~@fn-args))))
 
 (defmacro ^:private defbinarypathfn
-  "Defines a function of two paths."
+  "Defines a function of exactly two paths."
   [name docstring tag method]
   `(defn ~name
      ~docstring
@@ -149,23 +150,23 @@
   "Returns true if the path ends with the other, false otherwise."
   Boolean .endsWith)
 
-(defunarypathfn file-name
+(defpathfn file-name
   "Returns the name of the file or directory denoted by the path."
   java.nio.file.Path .getFileName)
 
-(defunarypathfn parent
+(defpathfn parent
   "Returns the parent of the path if it has one, nil otherwise."
   java.nio.file.Path .getParent)
 
-(defunarypathfn root
+(defpathfn root
   "Returns the root of the path if it has one, nil otherwise."
   java.nio.file.Path .getRoot)
 
-(defunarypathfn absolute?
+(defpathfn absolute?
   "Returns if the path is absolute, false otherwise"
   Boolean .isAbsolute)
 
-(defunarypathfn normalize
+(defpathfn normalize
   "Returns the path with redundant name elements eliminated."
   java.nio.file.Path .normalize)
 
@@ -265,11 +266,11 @@
   [this & [x y & more]]
   (p/create-temp-file y this x  more))
 
-(defunarypathfn delete!
+(defpathfn delete!
   "Deletes the file at path."
   nil Files/delete)
 
-(defunarypathfn delete-if-exists!
+(defpathfn delete-if-exists!
   "Deletes the file at path if it exists. Returns true if the file was
   deleted, false otherwise."
   Boolean Files/deleteIfExists)
@@ -286,7 +287,7 @@
   "Returns a file attribute view of the given type."
   FileAttributeView Files/getFileAttributeView attribute-view-type)
 
-(defunarypathfn file-store
+(defpathfn file-store
   "Returns the file store where the file is located."
   java.nio.file.FileStore Files/getFileStore)
 
@@ -307,15 +308,15 @@
   "Returns true if the file is a directory, false otherwise."
   Boolean Files/isDirectory)
 
-(defunarypathfn executable?
+(defpathfn executable?
   "Returns true if the file is executable, false otherwise."
   Boolean Files/isExecutable)
 
-(defunarypathfn hidden?
+(defpathfn hidden?
   "Returns true if the file is hidden, false otherwise."
   Boolean Files/isHidden)
 
-(defunarypathfn readable?
+(defpathfn readable?
   "Returns true if the file is readable, false otherwise."
   Boolean Files/isReadable)
 
@@ -328,11 +329,11 @@
   "Returns true if the two paths are the same, false otherwise."
   Boolean Files/isSameFile)
 
-(defunarypathfn symbolic-link?
+(defpathfn symbolic-link?
   "Returns true if the file is a symbolic link, false otherwise."
   Boolean Files/isSymbolicLink)
 
-(defunarypathfn writable?
+(defpathfn writable?
   "Returns true if the file is a writable, false otherwise."
   Boolean Files/isWritable)
 
@@ -350,11 +351,11 @@
   "Returns true if the file does not exist, false otherwise."
   Boolean Files/notExists)
 
-(defunarypathfn probe-content-type
+(defpathfn probe-content-type
   "Returns true if the file is a writable, false otherwise."
   String Files/probeContentType)
 
-(defunarypathfn read-all-bytes
+(defpathfn read-all-bytes
   "Returns the bytes from the file."
   "[B" Files/readAllBytes)
 
@@ -372,16 +373,27 @@
   [p attributes & options]
   (p/read-attributes attributes (path p) options))
 
-(defunarypathfn read-symbolic-link
+(defpathfn read-symbolic-link
   "Returns the target of a symbolic link."
   java.nio.file.Path Files/readSymbolicLink)
 
-;; TODO: Implement setAttribute
-;; TODO: Implement setLastModifiedTime
-;; TODO: Implement setOwner
-;; TODO: Implement setPosixFilePermissions
+(deflinkfn set-attribute!
+  "Sets the value of a file attribute."
+  java.nio.file.Path Files/setAttribute attribute value)
 
-(defunarypathfn size
+(defpathfn set-last-modified-time!
+  "Sets the last modified time of the file."
+  java.nio.file.Path Files/setLastModifiedTime file-time)
+
+(defpathfn set-owner!
+  "Sets the file's owner."
+  java.nio.file.Path Files/setOwner owner)
+
+(defpathfn set-posix-file-permissions!
+  "Sets the file's POSIX permissions."
+  java.nio.file.Path Files/setPosixFilePermissions permissions)
+
+(defpathfn size
   "Returns the size of the file in bytes."
   Long Files/size)
 
