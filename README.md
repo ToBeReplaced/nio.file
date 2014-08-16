@@ -84,5 +84,6 @@ The license can be found at LICENSE in the root of this distribution.
 [WHY.md]: https://github.com/ToBeReplaced/nio.file/blob/master/WHY.md
 [walkthrough.clj]: https://github.com/ToBeReplaced/nio.file/blob/master/walkthrough.clj
 [walkFileTree]: http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#walkFileTree-java.nio.file.Path-java.nio.file.FileVisitor-
+[Codox API Documentation]: http://ToBeReplaced.github.com/nio.file
 [Clojars]: http://clojars.org/org.tobereplaced/nio.file
 [Semantic Versioning]: http://semver.org
