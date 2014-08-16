@@ -7,7 +7,7 @@
                                                naive-visitor absolute-path
                                                file-name file-system parent
                                                root absolute? normalize
-                                               relativize register]])
+                                               relativize register! watch-service]])
   (:import (java.net URI)
            (java.io File)
            (java.nio.file FileSystems FileSystem)))
@@ -103,20 +103,20 @@
   (is (starts-with? (path "foo/bar") (path "foo")))
   (is (not (starts-with? (path "foo/bar") (path "f")))))
 
-(deftest register-test
+;; TODO: Rewrite to use temporary directories
+(deftest register!-test
   ;; in this test, a watch is placed on a directory, and a future (counter) is
   ;; created, which responds to each watched event as it occurs. We verify that
   ;; the events are watched, and each event type is delivered and handled.
-  (let [watched-path (path "test")
-        fs (file-system watched-path)
-        watcher (. fs newWatchService)
-        watch-key (register watched-path watcher #{:entry-create
-                                                   :entry-delete
-                                                   :entry-modify})
+  (let [watched-path "test"
+        watcher (watch-service)
+        watch-key (register! watched-path
+                             watcher
+                             #{:entry-create :entry-delete :entry-modify})
         events (atom {})
         counter (future
-                  (while true
-                    (let [event (. watcher take)
+                  (while (not (Thread/interrupted))
+                    (let [event (.take watcher)
                           event-list (.pollEvents event)]
                       (doseq [^java.nio.file.WatchEvent e event-list]
                         (swap! events update-in [(-> e .kind .name)]
