@@ -2,54 +2,39 @@
 
 Clojure wrapper for java.nio.file
 
-Work in progress. No release scheduled.
+Why do this? Take a look at [WHY.md].
 
-Pull requests welcome! Check out the TODO items in the source code.
+Work in progress! Expect bugs and missing functionality until we hit
+1.0.0.
 
-# Why Wrap java.nio.file? #
+## Supported Clojure and Java Versions ##
 
-The classes and interfaces in java.nio.file form an *excellent* file
-system API. They allow you to do everything you want to a file system
-without the assumptions that plague the old java APIs or most APIs in
-other languages. Symbolic links? No problem!
+`nio.file` targets Clojure 1.6+ and Java 1.7+. New features in future
+versions of Java will be implemented conditionally so that that you
+can continue to use this library on 1.7.
 
-So, why aren't we using it in Clojure? It's *hard*.
+## Maturity ##
 
+This is alpha quality software. If your usage requires a complete and
+bug free experience, please wait for 1.0.0.
 
-## Problem: Variadic Arguments ##
+## Installation ##
 
-Many methods in java.nio.file use variadic arguments of new types like
-`LinkOption` and `CopyOption`. In order to call these from clojure,
-you must create java arrays containing those elements with commands
-like `(into-array CopyOption options)`. In doing so, we require calls
-that have no specific options to include extra information. Moreover,
-unless you're used to writing type-hints for java arrays, odds are you
-are going to end up reflecting often.
+`nio.file` is available as a Maven artifact from [Clojars]:
 
-This library exposes these variadic argument methods as clojure
-functions with variadic arguments, eliminating the need for a user to
-create java arrays.
+```clojure
+[org.tobereplaced/nio.file "0.1.0"]
+```
 
-## Problem: Polymorphism ##
+`nio.file` follows [Semantic Versioning].  Please note that this means
+the public API for this library is not yet considered stable.
 
-Some methods accept a String or a Path, and others accept some
-combination of InputStreams, OutputStreams, Paths, and
-CopyOptions. These are counter to usability in clojure and can be
-difficult to type-hint appropriately in applications that require it.
+## Documentation ##
 
-This library provides coercion-based constructor methods that are
-extensible through protocols and uses them to create polymorphic
-versions of the methods in java.nio.file.
+Please read the [Codox API Documentation] and take a look at
+[walkthrough.clj].
 
-## Problem: FileVisitor ##
-
-Methods like [walkFileTree] require a `FileVisitor` as an argument,
-which can be difficult to construct.
-
-This library provides functions to create reified instances of a
-`FileVisitor` from user-provided functions.
-
-# What belongs here? #
+## What Belongs Here? ##
 
 The goal of this library is to make it so that everything you *could*
 do with java.nio.file, you can do easier with this library.
@@ -68,9 +53,36 @@ As an example, implementing "remove-directory" is out of
 scope. However, [walkthrough.clj] will show you how to do that and
 other utility-like-things quite easily.
 
-# Walkthrough #
+## Contributing ##
 
-See [walkthrough.clj] for examples of using this library.
+Pull requests welcome! Check out the TODO items in the source
+code. Engage with me! There's a lot of work, and I don't have time for
+all of it.
 
+We need lots of tests and some guided examples in the
+[walkthrough.clj].
+
+## Support ##
+
+Please post any comments, concerns, or issues to the Github issues
+page or find me on `#clojure`.  I welcome any and all feedback.
+
+## Changelog ##
+
+### v0.1.0 ###
+
+- Initial Release
+- Most `Files` `FileSystem` and `Path` methods implemented.
+
+## License ##
+
+Copyright © 2014 ToBeReplaced
+
+Distributed under the Eclipse Public License, the same as Clojure.
+The license can be found at LICENSE in the root of this distribution.
+
+[WHY.md]: https://github.com/ToBeReplaced/nio.file/blob/master/WHY.md
 [walkthrough.clj]: https://github.com/ToBeReplaced/nio.file/blob/master/walkthrough.clj
 [walkFileTree]: http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#walkFileTree-java.nio.file.Path-java.nio.file.FileVisitor-
+[Clojars]: http://clojars.org/org.tobereplaced/nio.file
+[Semantic Versioning]: http://semver.org
