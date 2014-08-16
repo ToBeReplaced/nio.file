@@ -3,8 +3,9 @@
            (java.io File InputStream OutputStream)
            (java.net URI)
            (java.nio.charset Charset StandardCharsets)
-           (java.nio.file CopyOption FileSystems Files OpenOption Path
-                          Paths StandardWatchEventKinds WatchEvent$Kind)
+           (java.nio.file CopyOption FileSystems Files LinkOption
+                          OpenOption Path Paths StandardWatchEventKinds
+                          WatchEvent$Kind)
            (java.nio.file.attribute FileAttribute)))
 
 (def ^:private empty-string-array (into-array String []))
@@ -59,8 +60,6 @@
              IllegalArgumentException.
              throw))))
 
-;; Private implementation protocol to allow for dispatch when it is
-;; known that we are copying from an input stream.
 (defprotocol ^:private CopyFromInputStream
              (copy-from-input-stream [this source options]))
 
@@ -74,8 +73,6 @@
   (copy-from-input-stream [this source options]
     (copy-from-input-stream (unary-path this) source options)))
 
-;; Private implementation protocol to allow for dispatch when it is
-;; known that we are copying from a path.
 (defprotocol ^:private CopyFromPath
              (copy-from-path [this source options]))
 
@@ -106,8 +103,6 @@
   (copy [this target options]
     (copy (unary-path this) target options)))
 
-;; Private implementation protocol to allow for dispatch when a
-;; directory is provided.
 (defprotocol ^:private CreateTempDirectory
              (create-temp-directory [prefix dir attrs]))
 
@@ -124,8 +119,6 @@
     (Files/createTempDirectory (unary-path dir) prefix
                                (into-array FileAttribute attrs))))
 
-;; Private implementation protocols to allow for dispatch when a
-;; directory or suffix is provided.
 (defprotocol ^:private CreateTempFile
              (create-temp-file [suffix dir prefix attrs]))
 
@@ -143,8 +136,21 @@
     (Files/createTempFile (unary-path dir) prefix suffix
                           (into-array FileAttribute attrs))))
 
-;; Private implementation protocol to allow for dispatch based on
-;; whether a charset is provided or not.
+(defprotocol ^:private ReadAttributes
+             (read-attributes [this path options]))
+
+(extend-protocol ReadAttributes
+  Class
+  (read-attributes [this path options]
+    (Files/readAttributes ^Path path this
+                          ^"[Ljava.nio.file.LinkOption;"
+                          (into-array LinkOption options)))
+  String
+  (read-attributes [this path options]
+    (Files/readAttributes ^Path path this
+                          ^"[Ljava.nio.file.LinkOption;"
+                          (into-array LinkOption options))))
+
 (defprotocol ^:private WriteLines
              (write-lines [this path lines options]))
 

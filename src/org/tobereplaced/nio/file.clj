@@ -6,7 +6,8 @@
   accept no argument in exchange for the default
   FileSystem."
   (:require [org.tobereplaced.nio.file.protocols :as p])
-  (:import (java.nio.file CopyOption FileSystems FileVisitResult
+  (:import (java.nio.charset StandardCharsets)
+           (java.nio.file CopyOption FileSystems FileVisitResult
                           FileVisitor Files LinkOption WatchEvent$Kind
                           WatchEvent$Modifier WatchService)
            (java.nio.file.attribute FileAttribute FileAttributeView
@@ -357,8 +358,19 @@
   "Returns the bytes from the file."
   "[B" Files/readAllBytes)
 
-;; TODO: Implement readAllLines
-;; TODO: Implement readAttributes
+(defn read-all-lines
+  "Returns the lines of a file."
+  {:arglists '([path] [path charset])}
+  ;; We fill this in for 1.7-to-1.8 compatibility.
+  ([p] (Files/readAllLines (path p) StandardCharsets/UTF_8))
+  ([p cs] (Files/readAllLines (path p) cs)))
+
+(defn read-attributes
+  "Returns the file's attributes."
+  {:arglists (list '[path attribute-type & link-options]
+                   '[path attribute-string & link-options])}
+  [p attributes & options]
+  (p/read-attributes attributes (path p) options))
 
 (defunarypathfn read-symbolic-link
   "Returns the target of a symbolic link."
