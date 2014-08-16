@@ -9,7 +9,7 @@
   (:import (java.nio.file FileSystems FileVisitResult FileVisitor Files
                           LinkOption WatchEvent$Kind
                           WatchEvent$Modifier WatchService)
-           (java.nio.file.attribute FileAttribute
+           (java.nio.file.attribute FileAttribute FileAttributeView
                                     UserPrincipalLookupService)))
 
 ;;;
@@ -48,14 +48,15 @@
      (~method (path p#) (into-array FileAttribute attrs#))))
 
 (defmacro ^:private deflinkfn
-  "Defines a function of a path and link options."
-  [name docstring tag method]
-  `(defn ~name
-     ~docstring
-     {:arglists '(~'[path & link-options])
-      :tag ~tag}
-     [p# & options#]
-     (~method (path p#) (into-array LinkOption options#))))
+  "Defines a function of a path, extra arguments, and link options."
+  [name docstring tag method & args]
+  (let [fn-args (repeat (count args) (gensym))]
+    `(defn ~name
+       ~docstring
+       {:arglists '(~(vec (concat '[path] args '[& link-options])))
+        :tag ~tag}
+       [p# ~@fn-args & options#]
+       (~method (path p#) ~@fn-args (into-array LinkOption options#)))))
 
 (defmacro ^:private deffsfn
   "Defines a function on a filesystem."
@@ -276,8 +277,13 @@
   "Returns true if the file exists, false otherwise."
   Boolean Files/exists)
 
-;; TODO: Implement getAttribute
-;; TODO: What to do about getFileAttributeView?
+(deflinkfn attribute
+  "Returns the value of a file attribute."
+  Object Files/getAttribute attribute)
+
+(deflinkfn file-attribute-view
+  "Returns a file attribute view of the given type."
+  FileAttributeView Files/getFileAttributeView attribute-view-type)
 
 (defunarypathfn file-store
   "Returns the file store where the file is located."
@@ -291,7 +297,10 @@
   "Returns the owner of the file."
   java.nio.file.attribute.UserPrincipal Files/getOwner)
 
-;; TODO: Implement getPosixFilePermissions
+(deflinkfn posix-file-permissions
+  "Returns the POSIX file permissions for the file."
+  ;; TODO: How to type hint a set of PosixFilePermissions?
+  nil Files/getPosixFilePermissions)
 
 (deflinkfn directory?
   "Returns true if the file is a directory, false otherwise."
