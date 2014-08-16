@@ -6,8 +6,8 @@
   accept no argument in exchange for the default
   FileSystem."
   (:require [org.tobereplaced.nio.file.protocols :as p])
-  (:import (java.nio.file FileSystems FileVisitResult FileVisitor Files
-                          LinkOption WatchEvent$Kind
+  (:import (java.nio.file CopyOption FileSystems FileVisitResult
+                          FileVisitor Files LinkOption WatchEvent$Kind
                           WatchEvent$Modifier WatchService)
            (java.nio.file.attribute FileAttribute FileAttributeView
                                     UserPrincipalLookupService)))
@@ -335,7 +335,12 @@
   "Returns true if the file is a writable, false otherwise."
   Boolean Files/isWritable)
 
-;; TODO: Implement move
+(defn move
+  "Move the file at source to target. Returns the target path. "
+  {:tag java.nio.file.Path}
+  [source target & copy-options]
+  (Files/move (path source) (path target) (into-array CopyOption copy-options)))
+
 ;; TODO: What to do about newBufferedReader/Writer?
 ;; TODO: What to do about newByteChannel/DirectoryStream?
 ;; TODO: What to do about newInputStream/OutputStream?
