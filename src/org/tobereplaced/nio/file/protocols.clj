@@ -136,6 +136,17 @@
     (Files/createTempFile (unary-path dir) prefix suffix
                           (into-array FileAttribute attrs))))
 
+(defprotocol ^:private PosixFilePermissions (posix-file-permissions [this]))
+
+(extend-protocol PosixFilePermissions
+  Keyword
+  (posix-file-permissions [this]
+    (java.nio.file.attribute.PosixFilePermissions/fromString (name this)))
+  Object
+  (posix-file-permissions [this]
+    (Files/getPosixFilePermissions (unary-path this)
+                                   (into-array LinkOption []))))
+
 (defprotocol ^:private ReadAttributes
              (read-attributes [this path options]))
 

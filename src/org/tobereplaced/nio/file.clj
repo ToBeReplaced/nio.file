@@ -299,10 +299,20 @@
   "Returns the owner of the file."
   java.nio.file.attribute.UserPrincipal Files/getOwner)
 
-(deflinkfn posix-file-permissions
-  "Returns the POSIX file permissions for the file."
+(defn posix-file-permissions
+  "Returns a set of POSIX file permissions.
+
+  If the first argument is able to be coerced into a file, this
+  returns the file's permissions. If the first argument is a keyword,
+  the permissions will be generated from its name, which should be a
+  representation like \"rw-rw-r--\"."
   ;; TODO: How to type hint a set of PosixFilePermissions?
-  nil Files/getPosixFilePermissions)
+  ;; TODO: Should this accept something like 0644? How?
+  {:arglists '([permissions-key] [path & link-options])}
+  ([this]
+     (p/posix-file-permissions this))
+  ([p & options]
+     (Files/getPosixFilePermissions (path p) (into-array LinkOption options))))
 
 (deflinkfn directory?
   "Returns true if the file is a directory, false otherwise."
