@@ -421,7 +421,7 @@
   "Returns the size of the file in bytes."
   Long Files/size)
 
-(defn write
+(defn write!
   "Write bytes or lines of text to a file. Open options may be
   included for configuration when opening or creating a file. In the
   case of writing lines of text, the charset will default to UTF-8
