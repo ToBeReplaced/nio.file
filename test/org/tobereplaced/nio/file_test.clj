@@ -1,16 +1,20 @@
 (ns org.tobereplaced.nio.file-test
-  (:require [clojure.test :as test :refer [deftest is]]
-            [org.tobereplaced.nio.file :refer [path compare-to starts-with?
-                                               ends-with? relativize
-                                               resolve-path resolve-sibling
-                                               real-path copy delete!
-                                               naive-visitor absolute-path
-                                               file-name file-system parent
-                                               root absolute? normalize
-                                               relativize register! watch-service]])
-  (:import (java.net URI)
-           (java.io File)
-           (java.nio.file FileSystems FileSystem)))
+  (:require [clojure.test :refer [deftest is]]
+            [org.tobereplaced.nio.file :refer [absolute-path absolute?
+                                               compare-to delete!
+                                               ends-with? file-name
+                                               file-system normalize
+                                               parent path
+                                               posix-file-permission
+                                               posix-file-permissions
+                                               real-path register!
+                                               relativize resolve-path
+                                               resolve-sibling root
+                                               starts-with?
+                                               watch-service]])
+  (:import (java.io File)
+           (java.net URI)
+           (java.nio.file FileSystem FileSystems)))
 
 (deftest path-test
   (is (every? #(= (path "/foo/bar") (apply path %))
@@ -133,3 +137,12 @@
             "ENTRY_MODIFY" 1}
            @events))
     (future-cancel counter)))
+
+(deftest posix-file-permission-test
+  (is (= (posix-file-permission :group-execute)
+         (posix-file-permission (posix-file-permission :group-execute)))
+      "should convert suitable keywords into permissions"))
+
+(deftest posix-file-permissions-test
+  (is (posix-file-permissions :rw-rw-r--)
+      "should be able to coerce suitable keyword"))

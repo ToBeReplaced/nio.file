@@ -60,6 +60,38 @@
              IllegalArgumentException.
              throw))))
 
+(defprotocol ^:private PosixFilePermission
+             (posix-file-permission [this]))
+
+(extend-protocol PosixFilePermission
+  java.nio.file.attribute.PosixFilePermission
+  (posix-file-permission [this] this)
+  Keyword
+  (posix-file-permission [this]
+    (or (get {:owner-execute
+              java.nio.file.attribute.PosixFilePermission/OWNER_EXECUTE
+              :owner-read
+              java.nio.file.attribute.PosixFilePermission/OWNER_READ
+              :owner-write
+              java.nio.file.attribute.PosixFilePermission/OWNER_WRITE
+              :group-execute
+              java.nio.file.attribute.PosixFilePermission/GROUP_EXECUTE
+              :group-read
+              java.nio.file.attribute.PosixFilePermission/GROUP_READ
+              :group-write
+              java.nio.file.attribute.PosixFilePermission/GROUP_WRITE
+              :others-execute
+              java.nio.file.attribute.PosixFilePermission/OTHERS_EXECUTE
+              :others-read
+              java.nio.file.attribute.PosixFilePermission/OTHERS_READ
+              :others-write
+              java.nio.file.attribute.PosixFilePermission/OTHERS_WRITE}
+             this)
+        (->> this
+             (format "No PosixFilePermission found for keyword: %s")
+             IllegalArgumentException.
+             throw))))
+
 (defprotocol ^:private CopyFromInputStream
              (copy-from-input-stream [this source options]))
 

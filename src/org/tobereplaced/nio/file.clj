@@ -11,6 +11,7 @@
                           FileVisitor Files LinkOption WatchEvent$Kind
                           WatchEvent$Modifier WatchService)
            (java.nio.file.attribute FileAttribute FileAttributeView
+                                    PosixFilePermissions
                                     UserPrincipalLookupService)))
 
 ;;;
@@ -71,8 +72,8 @@
      ([fs#] (~method (file-system fs#)))))
 
 ;;;
-;;; Creation and coercion for Paths, FileSystems, and
-;;; WatchEvent.Kinds.
+;;; Creation and coercion for Paths, FileSystems, WatchEvent.Kinds,
+;;; and PosixFilePermissions.
 ;;;
 
 (defn path
@@ -123,7 +124,20 @@
   This function is extensible through the WatchEventKind protocol."
   {:arglists '([:entry-create] [:entry-delete] [:entry-modify] [event-kind])
    :tag java.nio.file.WatchEvent$Kind}
-  ([this] (p/watch-event-kind this)))
+  [this]
+  (p/watch-event-kind this))
+
+(defn posix-file-permission
+  "Returns a PosixFilePermission from the keyword. The keyword may
+  correspond to any of the PosixFilePermission types. Passing in a
+  PosixFilePermission returns itself."
+  {:arglists (list [:owner-execute] [:owner-read] [:owner-write]
+                   [:group-execute] [:group-read] [:group-write]
+                   [:others-execute] [:others-read] [:others-write]
+                   ['permission])
+   :tag java.nio.file.attribute.PosixFilePermission}
+  [this]
+  (p/posix-file-permission this))
 
 ;;;
 ;;; Path functions, ordered lexicographically according to their
@@ -541,6 +555,19 @@
   file system."
   nil
   .supportedFileAttributeViews)
+
+;;;
+;;; PosixFilePermissions functions
+;;;
+
+(defn file-attribute
+  "Returns a file attribute from PosixFilePermissions."
+  ;; TODO: This should maybe be extensible. Right now, this is the
+  ;; only way to create a file attribute in java.
+  [permission & more]
+  (PosixFilePermissions/asFileAttribute (->> (cons permission more)
+                                             (map posix-file-permission)
+                                             (into #{}))))
 
 ;;;
 ;;; TODO: Implement FileSystemProvider methods that aren't delegated
