@@ -23,7 +23,7 @@ bug free experience, please wait for 1.0.0.
 `nio.file` is available as a Maven artifact from [Clojars]:
 
 ```clojure
-[org.tobereplaced/nio.file "0.1.0"]
+[org.tobereplaced/nio.file "0.2.0"]
 ```
 
 `nio.file` follows [Semantic Versioning].  Please note that this means
@@ -69,10 +69,16 @@ page or find me on `#clojure`.  I welcome any and all feedback.
 
 ## Changelog ##
 
+### v0.2.0 ###
+
+- Rename write to write!
+- Add functions and extend functionality for working with
+  PosixFilePermissions
+
 ### v0.1.0 ###
 
 - Initial Release
-- Most `Files` `FileSystem` and `Path` methods implemented.
+- Most `Files` `FileSystem` and `Path` methods implemented
 
 ## License ##
 
