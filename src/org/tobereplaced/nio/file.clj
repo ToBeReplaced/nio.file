@@ -216,7 +216,7 @@
 ;;; corresponding static methods on the Files class.
 ;;;
 
-(defn copy
+(defn copy!
   "Copy all bytes from a file to a file, file to an output stream, or
   input stream to a file. The return type depends on the form of
   copy. Copying to or from a stream will return a long of the number
@@ -361,7 +361,7 @@
   "Returns true if the file is a writable, false otherwise."
   Boolean Files/isWritable)
 
-(defn move
+(defn move!
   "Move the file at source to target. Returns the target path. "
   {:tag java.nio.file.Path}
   [source target & copy-options]
