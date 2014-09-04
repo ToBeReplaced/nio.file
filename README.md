@@ -69,6 +69,10 @@ page or find me on `#clojure`.  I welcome any and all feedback.
 
 ## Changelog ##
 
+### v0.3.0 ###
+
+- Rename copy to copy! and move to move!.
+
 ### v0.2.0 ###
 
 - Rename write to write!
