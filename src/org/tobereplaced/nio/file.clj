@@ -446,7 +446,7 @@
                                     (throw exc)
                                     FileVisitResult/CONTINUE))
            visit-file (constantly FileVisitResult/CONTINUE)
-           vist-file-failed (fn [_ exc] (throw exc))}}]
+           visit-file-failed (fn [_ exc] (throw exc))}}]
   (reify FileVisitor
     (preVisitDirectory [_ dir attrs] (pre-visit-directory dir attrs))
     (postVisitDirectory [_ dir exc] (post-visit-directory dir exc))
