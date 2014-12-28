@@ -1,4 +1,4 @@
-(defproject org.tobereplaced/nio.file "0.4.0-SNAPSHOT"
+(defproject org.tobereplaced/nio.file "0.3.1"
   :description "Wrapper for java.nio.file"
   :url "https://github.com/ToBeReplaced/nio.file"
   :license {:name "Eclipse Public License"
