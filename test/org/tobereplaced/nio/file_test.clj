@@ -144,5 +144,9 @@
       "should convert suitable keywords into permissions"))
 
 (deftest posix-file-permissions-test
-  (is (posix-file-permissions :rw-rw-r--)
-      "should be able to coerce suitable keyword"))
+  (is (= (posix-file-permissions :rw-rw-r--))
+      "should be able to coerce suitable keyword")
+  (is (= (conj (posix-file-permissions :r--------)
+               (posix-file-permission :owner-write))
+         (posix-file-permissions :rw-------))
+      "should return a set that implements conj"))

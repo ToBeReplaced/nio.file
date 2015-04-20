@@ -326,7 +326,9 @@
   ([this]
      (p/posix-file-permissions this))
   ([p & options]
-     (Files/getPosixFilePermissions (path p) (into-array LinkOption options))))
+     (-> (path p)
+         (Files/getPosixFilePermissions (into-array LinkOption options))
+         set)))
 
 (deflinkfn directory?
   "Returns true if the file is a directory, false otherwise."

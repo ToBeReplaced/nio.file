@@ -173,11 +173,14 @@
 (extend-protocol PosixFilePermissions
   Keyword
   (posix-file-permissions [this]
-    (java.nio.file.attribute.PosixFilePermissions/fromString (name this)))
+    (-> (name this)
+        java.nio.file.attribute.PosixFilePermissions/fromString
+        set))
   Object
   (posix-file-permissions [this]
-    (Files/getPosixFilePermissions (unary-path this)
-                                   (into-array LinkOption []))))
+    (-> (unary-path this)
+        (Files/getPosixFilePermissions (into-array LinkOption []))
+        set)))
 
 (defprotocol ^:private ReadAttributes
              (read-attributes [this path options]))
