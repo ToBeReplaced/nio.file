@@ -23,7 +23,7 @@ bug free experience, please wait for 1.0.0.
 `nio.file` is available as a Maven artifact from [Clojars]:
 
 ```clojure
-[org.tobereplaced/nio.file "0.3.1"]
+[org.tobereplaced/nio.file "0.4.0"]
 ```
 
 `nio.file` follows [Semantic Versioning].  Please note that this means
@@ -68,6 +68,10 @@ Please post any comments, concerns, or issues to the Github issues
 page or find me on `#clojure`.  I welcome any and all feedback.
 
 ## Changelog ##
+
+### v0.4.0 ###
+
+- Make posix-file-permissions return a PersistentHashSet.
 
 ### v0.3.1 ###
 
